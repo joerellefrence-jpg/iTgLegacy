@@ -1,0 +1,27 @@
+name: Build IPA
+on: [workflow_dispatch]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.0.app
+      - name: Build Archive
+        run: |
+          xcodebuild -project iTgLegacy.xcodeproj \
+          -scheme iTgLegacy \
+          -sdk iphoneos \
+          -configuration Release \
+          archive -archivePath ./build/iTgLegacy.xcarchive \
+          CODE_SIGNING_ALLOWED=NO
+      - name: Create IPA
+        run: |
+          mkdir -p Payload
+          cp -r ./build/iTgLegacy.xcarchive/Products/Applications/*.app ./Payload/
+          zip -r iTgLegacy.ipa Payload
+      - name: Upload Result
+        uses: actions/upload-artifact@v3
+        with:
+          name: iTgLegacy-IPA
+          path: iTgLegacy.ipa
